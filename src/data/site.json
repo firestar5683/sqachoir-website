@@ -9,9 +9,10 @@
     "season": "August\u2013November",
     "day": "Monday",
     "time": "7:00\u20138:30 p.m.",
-    "place": "C6 rehearsal hall",
+    "place": "C6 Rehearsal Hall",
     "campus": "Friends University",
-    "city": "Wichita, Kansas"
+    "city": "Wichita, Kansas",
+    "building": "Riney Fine Arts Center"
   },
   "concerts": [
     {
@@ -20,8 +21,7 @@
       "title": "Hallelujah, The Praise Continues",
       "guest": "Reginal S. Wright",
       "venue": "Eastminster Presbyterian Church",
-      "description": "Our 2026 fall concert welcomed guest conductor Reginal S. Wright, with Eric D. Stone conducting and Dr. James Knight at the piano.",
-      "poster": "assets/concert-2026.pdf"
+      "description": "Our 2026 fall concert welcomed guest conductor Reginal S. Wright, with Eric D. Stone conducting and Dr. James Knight at the piano."
     },
     {
       "year": "2025",
@@ -29,8 +29,7 @@
       "title": "What a Savior, What a Friend",
       "guest": "Dr. Kevin Fenton",
       "venue": "Eastminster Presbyterian Church",
-      "description": "Guest conductor Dr. Kevin Fenton joined the choir for an evening of music led alongside Eric D. Stone, with Dr. James Knight accompanying.",
-      "program": "assets/concert-2025-program.pdf"
+      "description": "Guest conductor Dr. Kevin Fenton joined the choir for an evening of music led alongside Eric D. Stone, with Dr. James Knight accompanying."
     }
   ],
   "upcomingConcert": {
