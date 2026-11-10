@@ -77,6 +77,8 @@ test('Preview sends no form data automatically; activation is explicit and anti-
   const concert = readFileSync(resolve(dist,'concerts.html'),'utf8');
   assert.ok(concert.includes('datetime="2027-11-13"'));
   assert.ok(concert.includes('Marianne Forman'));
+  for (const title of ['Cry Out and Shout: A Concert of Praise', '25th Anniversary Celebration', 'Come and Worship']) assert.ok(concert.includes(title));
+  assert.ok(!concert.includes('undefined'));
   assert.equal((html.match(/<form /g)||[]).length,1);
   assert.ok(html.includes('value="member"'));
   assert.ok(html.includes('value="newsletter"'));

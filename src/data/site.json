@@ -30,6 +30,25 @@
       "guest": "Dr. Kevin Fenton",
       "venue": "Eastminster Presbyterian Church",
       "description": "Guest conductor Dr. Kevin Fenton joined the choir for an evening of music led alongside Eric D. Stone, with Dr. James Knight accompanying."
+    },
+    {
+      "year": "2022",
+      "date": "November 12, 2022",
+      "title": "Cry Out and Shout: A Concert of Praise",
+      "guest": "Dr. Steven Zielke",
+      "venue": "Eastminster Presbyterian Church"
+    },
+    {
+      "year": "2019",
+      "date": "November 9, 2019",
+      "title": "25th Anniversary Celebration",
+      "venue": "Eastminster Presbyterian Church"
+    },
+    {
+      "year": "2018",
+      "date": "November 3, 2018",
+      "title": "Come and Worship",
+      "venue": "Eastminster Presbyterian Church"
     }
   ],
   "upcomingConcert": {
