@@ -6,9 +6,9 @@
   "director": "Eric D. Stone",
   "accompanist": "Dr. James Knight",
   "rehearsals": {
-    "season": "August–November",
+    "season": "August\u2013November",
     "day": "Monday",
-    "time": "7–8:30 p.m.",
+    "time": "7\u20138:30 p.m.",
     "place": "C6 rehearsal hall",
     "campus": "Friends University",
     "city": "Wichita, Kansas"
@@ -29,7 +29,8 @@
       "title": "What a Savior, What a Friend",
       "guest": "Dr. Kevin Fenton",
       "venue": "Eastminster Presbyterian Church",
-      "description": "Guest conductor Dr. Kevin Fenton joined the choir for an evening of music led alongside Eric D. Stone, with Dr. James Knight accompanying."
+      "description": "Guest conductor Dr. Kevin Fenton joined the choir for an evening of music led alongside Eric D. Stone, with Dr. James Knight accompanying.",
+      "program": "assets/concert-2025-program.pdf"
     }
   ],
   "upcomingConcert": {

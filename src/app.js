@@ -81,8 +81,10 @@ function setupForms() {
     if (button.disabled || !form.reportValidity()) { event.preventDefault(); return; }
     const values = Object.fromEntries(new FormData(form));
     if (values._honey) { event.preventDefault(); return; }
-    const record = signupRecord(values);
-    form.querySelector('[name=signup_record]').value = record ? 'SQAC_SIGNUP_V1:' + btoa(Array.from(new TextEncoder().encode(JSON.stringify(record)), b => String.fromCharCode(b)).join('')) : '';
+    const signup = signupRecord(values);
+    const record = signup || (values.request_type === 'inquiry' ? {kind:'inquiry', name:String(values.name).trim(), email:String(values.email).trim().toLowerCase(), consent:false} : null);
+    if (record) record.message = String(values.message || '').slice(0, 5000);
+    form.querySelector('[name=signup_record]').value = record ? 'SQAC_REQUEST_V1:' + btoa(Array.from(new TextEncoder().encode(JSON.stringify(record)), b => String.fromCharCode(b)).join('')) : '';
     if (form.dataset.delivery === 'automatic' && validFormEndpoint(form.action)) {
       button.disabled = true; label.textContent = 'Continuing to secure submission…'; return;
     }
