@@ -1,0 +1,81 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { readFileSync, readdirSync, existsSync, statSync } from 'node:fs';
+import { resolve, dirname } from 'node:path';
+import { buildEmail, validFormEndpoint, safeMediaUrl, filterTracks } from '../src/app.js';
+import { siteConfig } from '../src/config.js';
+const dist = resolve('dist');
+const pages = readdirSync(dist).filter(f => f.endsWith('.html'));
+
+test('Every page has required landmarks, one H1, title, language and description', () => {
+  assert.equal(pages.length, 8);
+  for (const file of pages) {
+    const html = readFileSync(resolve(dist, file),'utf8');
+    assert.equal((html.match(/<h1[ >]/g)||[]).length, 1, file);
+    for (const snippet of ['<html lang="en">','name="viewport"','name="description"','<title>','<main id="main">','Skip to content','<footer']) assert.ok(html.includes(snippet), `${file}: ${snippet}`);
+    assert.ok(!html.match(/<img(?![^>]*\balt=)[^>]*>/), `Missing image alt in ${file}`);
+  }
+});
+
+test('Every local link, image, style, script, srcset asset and anchor resolves', () => {
+  for (const file of pages) {
+    const html = readFileSync(resolve(dist,file),'utf8');
+    for (const match of html.matchAll(/(?:href|src)="([^"]+)"/g)) {
+      const url = match[1].replaceAll('&amp;','&');
+      if (/^(https?:|mailto:)/.test(url)) continue;
+      const [pathname, hash] = url.split('#');
+      const target = resolve(dist,pathname || file);
+      assert.ok(existsSync(target), `${file}: missing ${url}`);
+      if (hash && target.endsWith('.html')) assert.ok(readFileSync(target,'utf8').includes(`id="${hash}"`), `${file}: missing anchor ${url}`);
+    }
+    for (const set of html.matchAll(/srcset="([^"]+)"/g)) for(const entry of set[1].split(',')) assert.ok(existsSync(resolve(dist,entry.trim().split(' ')[0])));
+  }
+});
+
+test('Email preparation preserves text and cannot inject mail headers', () => {
+  const result = buildEmail('contact',{name:'A & B',email:'choir@example.org',topic:'Music? & more',message:'Line 1\nLine 2 & title=#42'});
+  const url = new URL(result);
+  assert.equal(url.pathname, siteConfig.email);
+  assert.equal(url.searchParams.get('subject'), 'Website inquiry: Music? & more');
+  assert.ok(url.searchParams.get('body').includes('Line 1\nLine 2 & title=#42'));
+  assert.equal([...url.searchParams.keys()].join(','), 'subject,body');
+  assert.ok(buildEmail('newsletter',{email:'a@example.org'}).includes('Newsletter%20signup%20request'));
+});
+
+test('Automatic endpoint is limited to the exact approved recipient and HTTPS provider', () => {
+  assert.equal(validFormEndpoint(siteConfig.formEndpoint),true);
+  for (const url of ['http://formsubmit.co/'+siteConfig.email,'https://evil.example/'+siteConfig.email,'https://formsubmit.co/other@example.org','https://formsubmit.co/'+siteConfig.email+'?cc=other@example.org','https://user:secret@formsubmit.co/'+siteConfig.email,'javascript:alert(1)']) assert.equal(validFormEndpoint(url),false,url);
+});
+
+test('Media URLs reject script/data/insecure and credential-bearing links', () => {
+  assert.equal(safeMediaUrl('https://example.org/track.mp3'),'https://example.org/track.mp3');
+  for(const value of ['javascript:alert(1)','data:text/html,Hi','http://example.org','https://user:pass@example.org/file','relative.mp3','']) assert.equal(safeMediaUrl(value),null);
+});
+
+test('Rehearsal filtering handles voice, all-voice recordings, search, empty results without mutating source', () => {
+  const tracks = [{title:'Alleluia',composer:'A Composer',tracks:[{label:'Soprano',voice:'soprano'},{label:'Alto',voice:'alto'},{label:'Full choir',voice:'all'}]}];
+  assert.equal(filterTracks(tracks,' composer ','soprano')[0].tracks.length,2);
+  assert.equal(filterTracks(tracks,'ALTO','all')[0].tracks.length,1);
+  assert.equal(filterTracks(tracks,'missing','all').length,0);
+  assert.equal(tracks[0].tracks.length,3);
+});
+
+test('Preview sends no form data automatically; activation is explicit and anti-spam preserved', () => {
+  const html = readFileSync(resolve(dist,'connect.html'),'utf8');
+  assert.equal((html.match(new RegExp(`data-delivery="${siteConfig.formsEnabled ? 'automatic' : 'email-app'}"`,'g'))||[]).length,2);
+  assert.ok(html.includes('name="_honey"'));
+  assert.ok(!html.includes('name="_captcha"'));
+  assert.ok(html.includes('name="consent" type="checkbox" required'));
+  assert.ok(!readFileSync(resolve(dist,'app.js'),'utf8').includes('innerHTML'));
+  const tracks = JSON.parse(readFileSync(resolve(dist,'tracks.json'),'utf8'));
+  assert.equal(tracks.collections.length,11);
+  assert.equal(tracks.referenceOnly,true);
+  for(const group of tracks.collections) for(const track of group.tracks) assert.ok(safeMediaUrl(track.url));
+});
+
+test('Static deployment output includes domain, sitemap, 404, CSS and local font licenses', () => {
+  assert.equal(readFileSync(resolve(dist,'CNAME'),'utf8').trim(),'sqachoir.com');
+  for(const file of ['.nojekyll','sitemap.xml','robots.txt','404.html','assets/social-card.png','assets/fonts/dm-sans-LICENSE.txt','assets/fonts/instrument-serif-LICENSE.txt']) assert.ok(existsSync(resolve(dist,file)),file);
+  for(const url of readFileSync(resolve(dist,'fonts.css'),'utf8').matchAll(/url\(([^)]+)\)/g)) assert.ok(existsSync(resolve(dist,url[1])));
+  assert.ok(statSync(resolve(dist,'app.js')).size < 16000);
+});

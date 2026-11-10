@@ -1,0 +1,150 @@
+{
+  "season": "2025 program: What a Savior, What a Friend",
+  "updated": "2026-11-10",
+  "referenceOnly": true,
+  "collections": [
+    {
+      "title": "Psalm of Rejoicing",
+      "composer": "Joseph M. Martin",
+      "note": "Use the Sample Pages & Audio link on the publisher’s page.",
+      "tracks": [
+        {
+          "label": "Publisher preview · Hal Leonard",
+          "voice": "all",
+          "url": "https://www.halleonard.com/product/35027329/psalm-of-rejoicing",
+          "action": "Open publisher preview"
+        }
+      ]
+    },
+    {
+      "title": "My Eternal King",
+      "composer": "Jane Marshall",
+      "note": "Conducted by Dr. George L. Biffle, April 13, 2014.",
+      "tracks": [
+        {
+          "label": "Reference performance · Polk Street Methodist Church Sanctuary Choir",
+          "voice": "all",
+          "url": "https://www.youtube.com/watch?v=oaSB-MsUMXk",
+          "action": "Watch reference"
+        }
+      ]
+    },
+    {
+      "title": "The Invitation",
+      "composer": "Craig Courtney",
+      "note": "Movement I of Divine Encounter. Follow the edition provided in rehearsal.",
+      "tracks": [
+        {
+          "label": "Publisher recording · Beckenhorst Press",
+          "voice": "all",
+          "url": "https://beckenhorstpress.com/divine-encounter-i-the-invitation/",
+          "action": "Listen at publisher"
+        }
+      ]
+    },
+    {
+      "title": "What a Savior, What a Friend",
+      "composer": "Marianne Forman",
+      "note": "Movement III of TRINITY. Public publisher listening page.",
+      "tracks": [
+        {
+          "label": "Publisher recording · Beckenhorst Press",
+          "voice": "all",
+          "url": "https://beckenhorstpress.com/what-a-savior-what-a-friend-from-trinity",
+          "action": "Listen at publisher"
+        }
+      ]
+    },
+    {
+      "title": "Get On Board",
+      "composer": "Arr. André J. Thomas",
+      "note": "Published as Get On Board, Little Children. Free recording playback is not verified.",
+      "tracks": [
+        {
+          "label": "Publisher resource · Gentry Publications",
+          "voice": "all",
+          "url": "https://www.gentrypublications.com/product/get-on-board-little-children-satb/",
+          "action": "Open publisher resource"
+        }
+      ]
+    },
+    {
+      "title": "To Praise the Lord",
+      "composer": "Joseph M. Martin",
+      "note": "SATB score video linked by the publisher.",
+      "tracks": [
+        {
+          "label": "Publisher score video · Hal Leonard",
+          "voice": "all",
+          "url": "https://www.youtube.com/watch?v=6Q4F_5iKR4g",
+          "action": "Watch reference"
+        }
+      ]
+    },
+    {
+      "title": "Meditations",
+      "composer": "Elaine Hagenberg",
+      "note": "Full title: The Meditations of My Heart. The concert program abbreviates the title.",
+      "tracks": [
+        {
+          "label": "Composer recording · Elaine Hagenberg Music",
+          "voice": "all",
+          "url": "https://www.youtube.com/watch?v=r3j9BcIzI0k",
+          "action": "Watch reference"
+        }
+      ]
+    },
+    {
+      "title": "Sing Out",
+      "composer": "Brendan Graham & David Downes",
+      "note": "2017 TMEA, conducted by Joe Weir. Roger Emerson arrangement; confirm against your score. Streaming may require a subscription.",
+      "tracks": [
+        {
+          "label": "Reference recording · Atascocita High School A Cappella Choir",
+          "voice": "all",
+          "url": "https://www.prestomusic.com/classical/products/8357605--2017-texas-music-educators-association-tmea-atascocita-high-school-a-cappella-choir-live",
+          "action": "Open album resource"
+        }
+      ]
+    },
+    {
+      "title": "Lord, I Believe",
+      "composer": "Rosephanye Powell",
+      "note": "Choose Sample Audio on the publisher’s page.",
+      "tracks": [
+        {
+          "label": "Publisher preview · Hal Leonard / Gentry",
+          "voice": "all",
+          "url": "https://www.halleonard.com/product/159831/lord-i-believelord-i-believe",
+          "action": "Open publisher preview"
+        }
+      ]
+    },
+    {
+      "title": "Khutšo",
+      "composer": "Mokale Koapeng & Roderick Williams",
+      "note": "SATB divisi, unaccompanied. Performance linked by ACDA’s 2025 World Musics reading list.",
+      "tracks": [
+        {
+          "label": "Reference performance · Tuks Camerata",
+          "voice": "all",
+          "url": "https://www.youtube.com/watch?v=SWAM91Tu_FM",
+          "action": "Watch reference"
+        }
+      ]
+    },
+    {
+      "title": "Hold On",
+      "composer": "Arr. Dan Davison",
+      "note": "SATB edition BL1155. Follow the edition and musical direction given in rehearsal.",
+      "tracks": [
+        {
+          "label": "Publisher score video · Carl Fischer Music",
+          "voice": "all",
+          "url": "https://www.youtube.com/watch?v=gsI2Rw42nD4",
+          "action": "Watch reference"
+        }
+      ]
+    }
+  ]
+}
