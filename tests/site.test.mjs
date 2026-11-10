@@ -99,3 +99,25 @@ test('Static deployment output includes domain, sitemap, 404, CSS and local font
   for(const url of readFileSync(resolve(dist,'fonts.css'),'utf8').matchAll(/url\(([^)]+)\)/g)) assert.ok(existsSync(resolve(dist,url[1])));
   assert.ok(statSync(resolve(dist,appScript)).size < 16000);
 });
+
+
+test('Search metadata identifies the choir and keeps public pages indexable', () => {
+  const home = readFileSync(resolve(dist,'index.html'),'utf8');
+  const identity = JSON.parse(home.match(/<script type="application\/ld\+json">(.*?)<\/script>/s)[1]);
+  const website = identity['@graph'].find(item => item['@type'] === 'WebSite');
+  const choir = identity['@graph'].find(item => item['@type'] === 'MusicGroup');
+  assert.equal(website.name, 'Singing Quakers Alumni Choir');
+  assert.equal(website.url, 'https://sqachoir.com/');
+  assert.equal(website.publisher['@id'], choir['@id']);
+  assert.equal(choir.name, website.name);
+  assert.ok(existsSync(resolve(dist, new URL(choir.logo).pathname.slice(1))));
+  assert.deepEqual(choir.sameAs,['https://www.instagram.com/friendsu_sqalumnichoir/']);
+  assert.ok(home.includes('property="og:site_name" content="Singing Quakers Alumni Choir"'));
+  for (const page of pages) {
+    const html = readFileSync(resolve(dist,page),'utf8');
+    assert.equal(html.includes('name="robots" content="noindex"'),['404.html','thank-you.html'].includes(page),page);
+  }
+  const sitemap = readFileSync(resolve(dist,'sitemap.xml'),'utf8');
+  for (const page of ['404.html','thank-you.html']) assert.ok(!sitemap.includes(page));
+  assert.ok(readFileSync(resolve(dist,'robots.txt'),'utf8').includes('Sitemap: https://sqachoir.com/sitemap.xml'));
+});
