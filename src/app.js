@@ -1,4 +1,5 @@
 import { siteConfig } from './config.js';
+import { setupAnalytics } from './analytics.js';
 
 export function buildEmail(type, values, email = siteConfig.email) {
   const newsletter = type === 'newsletter';
@@ -202,4 +203,4 @@ async function setupTracks() {
   search.addEventListener('input', render); voice.addEventListener('change', render); render();
 }
 
-if (typeof document !== 'undefined') { setupMenu(); setupForms(); setupTracks(); }
+if (typeof document !== 'undefined') { setupMenu(); setupForms(); setupTracks(); setupAnalytics(); }
