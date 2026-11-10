@@ -15,3 +15,7 @@
 .upcoming-concert{background:var(--soft);border-block:1px solid var(--line)}.upcoming-concert h2{margin-bottom:24px}.upcoming-concert p{margin-bottom:16px}.upcoming-concert .text-link{margin-top:16px}
 
 [hidden]{display:none!important}
+
+.site-header .wordmark img{width:150px;height:auto;max-height:76px;object-fit:contain;background:transparent;border-radius:0}.footer-bottom{grid-template-columns:1fr 1fr 1fr}@media(max-width:800px){.site-header .wordmark img{width:130px;max-height:68px}}@media(max-width:520px){.footer-bottom{grid-template-columns:1fr 1fr}}
+
+.social-icon{width:20px;height:20px;display:inline-block;vertical-align:middle;margin-right:8px}

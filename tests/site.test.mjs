@@ -5,6 +5,7 @@ import { resolve, dirname } from 'node:path';
 import { buildEmail, validFormEndpoint, safeMediaUrl, filterTracks, signupRecord } from '../src/app.js';
 import { siteConfig } from '../src/config.js';
 const dist = resolve('dist');
+const appScript = readdirSync(dist).find(f => /^app\.[a-f0-9]{12}\.js$/.test(f));
 const pages = readdirSync(dist).filter(f => f.endsWith('.html'));
 
 test('Every page has required landmarks, one H1, title, language and description', () => {
@@ -69,10 +70,10 @@ test('Preview sends no form data automatically; activation is explicit and anti-
   assert.deepEqual(signupRecord({request_type:'member', name:'Test Singer',email:'SINGER@EXAMPLE.ORG',consent:'yes'}), {kind:'member',name:'Test Singer',email:'singer@example.org',consent:true});
   assert.equal(signupRecord({request_type:'member',consent:'no'}),null);
   assert.equal(signupRecord({request_type:'inquiry',consent:'yes'}),null);
-  assert.ok(!readFileSync(resolve(dist,'app.js'),'utf8').includes('innerHTML'));
+  assert.ok(!readFileSync(resolve(dist,appScript),'utf8').includes('innerHTML'));
   const tracks = JSON.parse(readFileSync(resolve(dist,'tracks.json'),'utf8'));
   assert.deepEqual(tracks.collections.map(c => c.title), ['Hallelujah', 'Salvation Is Created', 'Let Thy Holy Presence', 'Nearer, Still Nearer', 'Guide Me, O Thou Great Jehovah', 'I Want Jesus to Walk With Me', 'Canticle of Praise', 'Do Not Pass Me By', 'Love Never Fails', 'I Am The Sunlight', 'We Are The Music Makers', 'Let It Be']);
-  assert.ok(!readFileSync(resolve(dist,'rehearsal-room.html'),'utf8').includes('Make the most of your practice'));
+  for (const removed of ['Make the most of your practice', 'Explore listening references and keep the music close.']) assert.ok(!readFileSync(resolve(dist,'rehearsal-room.html'),'utf8').includes(removed));
   const concert = readFileSync(resolve(dist,'concerts.html'),'utf8');
   assert.ok(concert.includes('datetime="2027-11-13"'));
   assert.ok(concert.includes('Marianne Forman'));
@@ -89,5 +90,5 @@ test('Static deployment output includes domain, sitemap, 404, CSS and local font
   assert.equal(readFileSync(resolve(dist,'CNAME'),'utf8').trim(),'sqachoir.com');
   for(const file of ['.nojekyll','sitemap.xml','robots.txt','404.html','assets/social-card.png','assets/fonts/dm-sans-LICENSE.txt','assets/fonts/instrument-serif-LICENSE.txt']) assert.ok(existsSync(resolve(dist,file)),file);
   for(const url of readFileSync(resolve(dist,'fonts.css'),'utf8').matchAll(/url\(([^)]+)\)/g)) assert.ok(existsSync(resolve(dist,url[1])));
-  assert.ok(statSync(resolve(dist,'app.js')).size < 16000);
+  assert.ok(statSync(resolve(dist,appScript)).size < 16000);
 });

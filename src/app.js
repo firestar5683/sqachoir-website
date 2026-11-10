@@ -105,7 +105,7 @@ async function setupTracks() {
   if (!container) return;
   let data;
   try {
-    const response = await fetch('tracks.json');
+    const response = await fetch('tracks.json', {cache: 'no-cache'});
     if (!response.ok) throw new Error('Unavailable');
     data = await response.json();
     if (!Array.isArray(data.collections) || !data.collections.length) return;
