@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync, existsSync, statSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
-import { buildEmail, validFormEndpoint, safeMediaUrl, filterTracks, signupRecord } from '../src/app.js';
+import { buildEmail, validFormEndpoint, safeMediaUrl, filterTracks, validFormReply } from '../src/app.js';
 import { siteConfig } from '../src/config.js';
 const dist = resolve('dist');
 const appScript = readdirSync(dist).find(f => /^app\.[a-f0-9]{12}\.js$/.test(f));
@@ -43,9 +43,13 @@ test('Email preparation preserves text and cannot inject mail headers', () => {
   assert.ok(buildEmail('newsletter',{email:'a@example.org'}).includes('Public%20concert%20updates%20signup%20request'));
 });
 
-test('Automatic endpoint is limited to the exact approved recipient and HTTPS provider', () => {
+test('Automatic endpoint and response are limited to the configured Google handler', () => {
   assert.equal(validFormEndpoint(siteConfig.formEndpoint),true);
-  for (const url of ['http://formsubmit.co/'+siteConfig.email,'https://evil.example/'+siteConfig.email,'https://formsubmit.co/other@example.org','https://formsubmit.co/'+siteConfig.email+'?cc=other@example.org','https://user:secret@formsubmit.co/'+siteConfig.email,'javascript:alert(1)']) assert.equal(validFormEndpoint(url),false,url);
+  for (const url of ['http://script.google.com/macros/s/other/exec','https://evil.example/exec','https://script.google.com/macros/s/other/exec',siteConfig.formEndpoint+'?cc=other@example.org','https://user:secret@script.google.com/macros/s/other/exec','javascript:alert(1)']) assert.equal(validFormEndpoint(url),false,url);
+  const reply = {type:'sqac-form-result',requestId:'test-id',ok:true};
+  assert.equal(validFormReply('https://n-example-script.googleusercontent.com',reply,'test-id'),true);
+  for (const origin of ['https://evil.example','https://script.googleusercontent.com.evil.example','http://n-example-script.googleusercontent.com']) assert.equal(validFormReply(origin,reply,'test-id'),false);
+  assert.equal(validFormReply('https://n-example-script.googleusercontent.com',reply,'other-id'),false);
 });
 
 test('Media URLs reject script/data/insecure and credential-bearing links', () => {
@@ -61,15 +65,16 @@ test('Rehearsal filtering handles voice, all-voice recordings, search, empty res
   assert.equal(tracks[0].tracks.length,3);
 });
 
-test('Preview sends no form data automatically; activation is explicit and anti-spam preserved', () => {
+test('Forms require consent and spam checks without provider email fields', () => {
   const html = readFileSync(resolve(dist,'connect.html'),'utf8');
   assert.equal((html.match(new RegExp(`data-delivery="${siteConfig.formsEnabled ? 'automatic' : 'email-app'}"`,'g'))||[]).length,1);
   assert.ok(html.includes('name="_honey"'));
-  assert.ok(!html.includes('name="_captcha"'));
+  assert.ok(html.includes('data-spam-check'));
+  assert.ok(html.includes('name="request_id"'));
+  assert.ok(!html.includes('signup_record'));
+  assert.ok(!html.includes('formsubmit.co'));
+  assert.ok(!html.includes('name="_subject"'));
   assert.ok(html.includes('name="consent" type="checkbox"'));
-  assert.deepEqual(signupRecord({request_type:'member', name:'Test Singer',email:'SINGER@EXAMPLE.ORG',consent:'yes'}), {kind:'member',name:'Test Singer',email:'singer@example.org',consent:true});
-  assert.equal(signupRecord({request_type:'member',consent:'no'}),null);
-  assert.equal(signupRecord({request_type:'inquiry',consent:'yes'}),null);
   assert.ok(!readFileSync(resolve(dist,appScript),'utf8').includes('innerHTML'));
   const tracks = JSON.parse(readFileSync(resolve(dist,'tracks.json'),'utf8'));
   assert.deepEqual(tracks.collections.map(c => c.title), ['Hallelujah', 'Salvation Is Created', 'Let Thy Holy Presence', 'Nearer, Still Nearer', 'Guide Me, O Thou Great Jehovah', 'I Want Jesus to Walk With Me', 'Canticle of Praise', 'Do Not Pass Me By', 'Love Never Fails', 'I Am The Sunlight', 'We Are The Music Makers', 'Let It Be']);

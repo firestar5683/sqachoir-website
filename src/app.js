@@ -12,7 +12,7 @@ export function buildEmail(type, values, email = siteConfig.email) {
 export function validFormEndpoint(value) {
   try {
     const url = new URL(value);
-    return url.protocol === 'https:' && url.hostname === 'formsubmit.co' && url.pathname === '/' + siteConfig.email && !url.username && !url.password && !url.search && !url.hash;
+    return url.protocol === 'https:' && url.hostname === 'script.google.com' && /^\/macros\/s\/[A-Za-z0-9_-]+\/exec$/.test(url.pathname) && value === siteConfig.formEndpoint && !url.username && !url.password && !url.search && !url.hash;
   } catch { return false; }
 }
 
@@ -47,9 +47,9 @@ function setupMenu() {
   window.addEventListener('pageshow', close);
 }
 
-export function signupRecord(values) {
-  if (!['member', 'newsletter'].includes(values.request_type) || values.consent !== 'yes') return null;
-  return {kind: values.request_type, name: String(values.name || '').trim().slice(0, 100), email: String(values.email || '').trim().toLowerCase(), consent: true};
+export function validFormReply(origin, data, requestId) {
+  return /^https:\/\/[a-z0-9-]+-script\.googleusercontent\.com$/.test(origin) &&
+    data?.type === 'sqac-form-result' && data.requestId === requestId && typeof data.ok === 'boolean';
 }
 
 function setupForms() {
@@ -60,8 +60,10 @@ function setupForms() {
   const consent = form.querySelector('[name=consent]');
   const button = form.querySelector('button[type=submit]');
   const label = form.querySelector('[data-submit-label]');
+  const status = form.querySelector('.form-status');
   const descriptions = {inquiry: 'Send a question to the choir.', member: 'For choir singers: member communications and rehearsal updates. Signing up does not confirm choir membership.', newsletter: 'For concertgoers: public performance announcements.'};
   const subjects = {inquiry: 'SQAC | General inquiry', member: 'SQAC | Member list', newsletter: 'SQAC | Concert newsletter'};
+  let pending = false, token = '', widget, timer, fingerprint = '', requestId = '';
   const updatePurpose = () => {
     const kind = Object.hasOwn(subjects, purpose.value) ? purpose.value : 'inquiry';
     message.required = kind === 'inquiry';
@@ -70,28 +72,67 @@ function setupForms() {
     form.querySelector('[data-consent-label]').textContent = kind === 'member' ? 'Send me choir member and rehearsal updates by email.' : 'Send me public concert announcements by email.';
     form.querySelector('[data-message-label]').textContent = kind === 'inquiry' ? 'Your message' : 'A note for the choir (optional)';
     form.querySelector('[data-purpose-help]').textContent = descriptions[kind];
-    form.querySelector('[name=_subject]').value = subjects[kind];
   };
   const selectFromHash = () => { if (location.hash === '#newsletter') purpose.value = 'newsletter'; else if (location.hash === '#sing') purpose.value = 'member'; updatePurpose(); };
   purpose.addEventListener('change', updatePurpose);
   window.addEventListener('hashchange', selectFromHash);
-  window.addEventListener('pageshow', () => { button.disabled = false; label.textContent = 'Send request'; });
   selectFromHash();
+  if (form.dataset.delivery === 'automatic' && validFormEndpoint(form.action)) {
+    const frame = document.createElement('iframe');
+    frame.name = 'choir-form-response'; frame.hidden = true; frame.title = 'Request delivery';
+    form.target = frame.name;
+    document.body.append(frame);
+    button.disabled = true;
+    const script = document.createElement('script');
+    script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
+    script.async = true;
+    const unavailable = () => {
+      token = ''; button.disabled = true;
+      status.dataset.state = 'error';
+      status.textContent = 'The spam check could not load. Please reload or email the choir directly.';
+    };
+    script.addEventListener('error', unavailable);
+    script.addEventListener('load', () => {
+      widget = window.turnstile.render(form.querySelector('[data-spam-check]'), {
+        sitekey:siteConfig.turnstileSiteKey, action:'choir_request', theme:'light',
+        callback:value => { token = value; button.disabled = pending; },
+        'expired-callback':() => { token = ''; button.disabled = true; },
+        'error-callback':unavailable
+      });
+    });
+    document.head.append(script);
+    const reset = text => {
+      pending = false; token = ''; button.disabled = true; label.textContent = 'Send request';
+      status.dataset.state = 'error'; status.textContent = text;
+      window.turnstile?.reset(widget);
+    };
+    window.addEventListener('message', event => {
+      if (!pending || !validFormReply(event.origin, event.data, requestId)) return;
+      clearTimeout(timer);
+      if (event.data.ok) { pending = false; window.location.assign('thank-you.html'); }
+      else reset(event.data.error || 'We could not accept the request. Please try again or email the choir.');
+    });
+    window.addEventListener('pageshow', event => { if (event.persisted) reset('Please complete the spam check before sending another request.'); });
+    form.addEventListener('submit', event => {
+      if (pending || !form.reportValidity() || !token) { event.preventDefault(); return; }
+      const values = Object.fromEntries(new FormData(form));
+      if (values._honey) { event.preventDefault(); return; }
+      const content = JSON.stringify([values.request_type, values.name, values.email, values.message, values.consent]);
+      if (content !== fingerprint) { fingerprint = content; requestId = crypto.randomUUID(); }
+      form.querySelector('[name=request_id]').value = requestId;
+      pending = true; button.disabled = true; label.textContent = 'Sending…'; status.textContent = '';
+      timer = setTimeout(() => reset('We could not confirm delivery. Please email the choir before resubmitting your request.'), 60000);
+    });
+    return;
+  }
   form.addEventListener('submit', event => {
-    if (button.disabled || !form.reportValidity()) { event.preventDefault(); return; }
-    const values = Object.fromEntries(new FormData(form));
-    if (values._honey) { event.preventDefault(); return; }
-    const signup = signupRecord(values);
-    const record = signup || (values.request_type === 'inquiry' ? {kind:'inquiry', name:String(values.name).trim(), email:String(values.email).trim().toLowerCase(), consent:false} : null);
-    if (record) record.message = String(values.message || '').slice(0, 5000);
-    form.querySelector('[name=signup_record]').value = record ? 'SQAC_REQUEST_V1:' + btoa(Array.from(new TextEncoder().encode(JSON.stringify(record)), b => String.fromCharCode(b)).join('')) : '';
-    if (form.dataset.delivery === 'automatic' && validFormEndpoint(form.action)) {
-      button.disabled = true; label.textContent = 'Continuing to secure submission…'; return;
-    }
     event.preventDefault();
+    if (!form.reportValidity()) return;
+    const values = Object.fromEntries(new FormData(form));
+    if (values._honey) return;
     const body = `Name: ${values.name}\nEmail: ${values.email}\nRequest: ${values.request_type}\nConsent: ${values.consent || 'not applicable'}\n\n${values.message || ''}`;
     window.location.href = `mailto:${siteConfig.email}?subject=${encodeURIComponent(subjects[purpose.value] || subjects.inquiry)}&body=${encodeURIComponent(body)}`;
-    form.querySelector('.form-status').textContent = 'Your email app should open. Press Send there to deliver your request.';
+    status.textContent = 'Your email app should open. Press Send there to deliver your request.';
   });
 }
 
