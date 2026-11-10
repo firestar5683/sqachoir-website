@@ -1,5 +1,5 @@
 import { siteConfig } from './config.js';
-import { setupAnalytics } from './analytics.js';
+import { setupAnalytics } from './analytics.js?v=2';
 
 export function buildEmail(type, values, email = siteConfig.email) {
   const newsletter = type === 'newsletter';
