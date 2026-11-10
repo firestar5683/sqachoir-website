@@ -11,3 +11,7 @@
 
 .field input,.field select,.field textarea{font-size:16px}
 .members-callout{overflow:hidden}
+
+.upcoming-concert{background:var(--soft);border-block:1px solid var(--line)}.upcoming-concert h2{margin-bottom:24px}.upcoming-concert p{margin-bottom:16px}.upcoming-concert .text-link{margin-top:16px}
+
+[hidden]{display:none!important}

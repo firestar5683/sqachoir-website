@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync, existsSync, statSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
-import { buildEmail, validFormEndpoint, safeMediaUrl, filterTracks } from '../src/app.js';
+import { buildEmail, validFormEndpoint, safeMediaUrl, filterTracks, signupRecord } from '../src/app.js';
 import { siteConfig } from '../src/config.js';
 const dist = resolve('dist');
 const pages = readdirSync(dist).filter(f => f.endsWith('.html'));
@@ -39,7 +39,7 @@ test('Email preparation preserves text and cannot inject mail headers', () => {
   assert.equal(url.searchParams.get('subject'), 'Website inquiry: Music? & more');
   assert.ok(url.searchParams.get('body').includes('Line 1\nLine 2 & title=#42'));
   assert.equal([...url.searchParams.keys()].join(','), 'subject,body');
-  assert.ok(buildEmail('newsletter',{email:'a@example.org'}).includes('Newsletter%20signup%20request'));
+  assert.ok(buildEmail('newsletter',{email:'a@example.org'}).includes('Public%20concert%20updates%20signup%20request'));
 });
 
 test('Automatic endpoint is limited to the exact approved recipient and HTTPS provider', () => {
@@ -62,13 +62,25 @@ test('Rehearsal filtering handles voice, all-voice recordings, search, empty res
 
 test('Preview sends no form data automatically; activation is explicit and anti-spam preserved', () => {
   const html = readFileSync(resolve(dist,'connect.html'),'utf8');
-  assert.equal((html.match(new RegExp(`data-delivery="${siteConfig.formsEnabled ? 'automatic' : 'email-app'}"`,'g'))||[]).length,2);
+  assert.equal((html.match(new RegExp(`data-delivery="${siteConfig.formsEnabled ? 'automatic' : 'email-app'}"`,'g'))||[]).length,1);
   assert.ok(html.includes('name="_honey"'));
   assert.ok(!html.includes('name="_captcha"'));
-  assert.ok(html.includes('name="consent" type="checkbox" required'));
+  assert.ok(html.includes('name="consent" type="checkbox"'));
+  assert.deepEqual(signupRecord({request_type:'member', name:'Test Singer',email:'SINGER@EXAMPLE.ORG',consent:'yes'}), {kind:'member',name:'Test Singer',email:'singer@example.org',consent:true});
+  assert.equal(signupRecord({request_type:'member',consent:'no'}),null);
+  assert.equal(signupRecord({request_type:'inquiry',consent:'yes'}),null);
   assert.ok(!readFileSync(resolve(dist,'app.js'),'utf8').includes('innerHTML'));
   const tracks = JSON.parse(readFileSync(resolve(dist,'tracks.json'),'utf8'));
-  assert.equal(tracks.collections.length,11);
+  assert.deepEqual(tracks.collections.map(c => c.title), ['Hallelujah', 'Salvation Is Created', 'Let Thy Holy Presence', 'Nearer, Still Nearer', 'Guide Me, O Thou Great Jehovah', 'I Want Jesus to Walk With Me', 'Canticle of Praise', 'Do Not Pass Me By', 'Love Never Fails', 'I Am The Sunlight', 'We Are The Music Makers', 'Let It Be']);
+  assert.ok(!readFileSync(resolve(dist,'rehearsal-room.html'),'utf8').includes('Make the most of your practice'));
+  const concert = readFileSync(resolve(dist,'concerts.html'),'utf8');
+  assert.ok(concert.includes('datetime="2027-11-13"'));
+  assert.ok(concert.includes('Marianne Forman'));
+  assert.equal((html.match(/<form /g)||[]).length,1);
+  assert.ok(html.includes('value="member"'));
+  assert.ok(html.includes('value="newsletter"'));
+  assert.ok(!html.includes('FormSubmit'));
+  assert.ok(!html.includes('Stay in the loop'));
   assert.equal(tracks.referenceOnly,true);
   for(const group of tracks.collections) for(const track of group.tracks) assert.ok(safeMediaUrl(track.url));
 });

@@ -2,7 +2,7 @@ import { siteConfig } from './config.js';
 
 export function buildEmail(type, values, email = siteConfig.email) {
   const newsletter = type === 'newsletter';
-  const subject = newsletter ? 'Newsletter signup request' : `Website inquiry: ${values.topic || 'General question'}`;
+  const subject = newsletter ? 'Public concert updates signup request' : `Website inquiry: ${values.topic || 'General question'}`;
   const body = newsletter
     ? `Please add me to the Singing Quakers Alumni Choir mailing list.\n\nName: ${values.name || '(not provided)'}\nEmail: ${values.email}\n\nI agree to receive concert announcements and choir news by email.`
     : `Name: ${values.name}\nEmail: ${values.email}\n\n${values.message}`;
@@ -47,32 +47,49 @@ function setupMenu() {
   window.addEventListener('pageshow', close);
 }
 
+export function signupRecord(values) {
+  if (!['member', 'newsletter'].includes(values.request_type) || values.consent !== 'yes') return null;
+  return {kind: values.request_type, name: String(values.name || '').trim().slice(0, 100), email: String(values.email || '').trim().toLowerCase(), consent: true};
+}
+
 function setupForms() {
-  for (const form of document.querySelectorAll('[data-form]')) {
-    const type = form.dataset.form;
-    const automatic = form.dataset.delivery === 'automatic';
-    const button = form.querySelector('button[type=submit]');
-    const status = form.querySelector('.form-status');
-    const label = form.querySelector('[data-submit-label]');
-    const originalLabel = label.textContent;
-    window.addEventListener('pageshow', () => { button.disabled = false; label.textContent = originalLabel; });
-    form.addEventListener('submit', event => {
-      if (button.disabled || !form.reportValidity()) { event.preventDefault(); return; }
-      const values = Object.fromEntries(new FormData(form));
-      if (values._honey) { event.preventDefault(); return; }
-      if (automatic && validFormEndpoint(form.action)) {
-        button.disabled = true;
-        label.textContent = 'Continuing to secure submission…';
-        return;
-      }
-      event.preventDefault();
-      window.location.href = buildEmail(type, values);
-      status.textContent = 'Your email app should open with the details filled in. Press Send there to deliver your request. If it doesn’t open, email ' + siteConfig.email + '.';
-    });
-  }
-  for (const link of document.querySelectorAll('[data-topic]')) link.addEventListener('click', () => {
-    const select = document.querySelector('#contact-topic');
-    if (select) select.value = link.dataset.topic;
+  const form = document.querySelector('[data-form="intake"]');
+  if (!form) return;
+  const purpose = form.querySelector('[name=request_type]');
+  const message = form.querySelector('[name=message]');
+  const consent = form.querySelector('[name=consent]');
+  const button = form.querySelector('button[type=submit]');
+  const label = form.querySelector('[data-submit-label]');
+  const descriptions = {inquiry: 'Send a question to the choir.', member: 'For choir singers: member communications and rehearsal updates. Signing up does not confirm choir membership.', newsletter: 'For concertgoers: public performance announcements.'};
+  const subjects = {inquiry: 'SQAC | General inquiry', member: 'SQAC | Member list', newsletter: 'SQAC | Concert newsletter'};
+  const updatePurpose = () => {
+    const kind = Object.hasOwn(subjects, purpose.value) ? purpose.value : 'inquiry';
+    message.required = kind === 'inquiry';
+    consent.required = kind !== 'inquiry';
+    form.querySelector('[data-consent-wrap]').hidden = kind === 'inquiry';
+    form.querySelector('[data-consent-label]').textContent = kind === 'member' ? 'Send me choir member and rehearsal updates by email.' : 'Send me public concert announcements by email.';
+    form.querySelector('[data-message-label]').textContent = kind === 'inquiry' ? 'Your message' : 'A note for the choir (optional)';
+    form.querySelector('[data-purpose-help]').textContent = descriptions[kind];
+    form.querySelector('[name=_subject]').value = subjects[kind];
+  };
+  const selectFromHash = () => { if (location.hash === '#newsletter') purpose.value = 'newsletter'; else if (location.hash === '#sing') purpose.value = 'member'; updatePurpose(); };
+  purpose.addEventListener('change', updatePurpose);
+  window.addEventListener('hashchange', selectFromHash);
+  window.addEventListener('pageshow', () => { button.disabled = false; label.textContent = 'Send request'; });
+  selectFromHash();
+  form.addEventListener('submit', event => {
+    if (button.disabled || !form.reportValidity()) { event.preventDefault(); return; }
+    const values = Object.fromEntries(new FormData(form));
+    if (values._honey) { event.preventDefault(); return; }
+    const record = signupRecord(values);
+    form.querySelector('[name=signup_record]').value = record ? 'SQAC_SIGNUP_V1:' + btoa(Array.from(new TextEncoder().encode(JSON.stringify(record)), b => String.fromCharCode(b)).join('')) : '';
+    if (form.dataset.delivery === 'automatic' && validFormEndpoint(form.action)) {
+      button.disabled = true; label.textContent = 'Continuing to secure submission…'; return;
+    }
+    event.preventDefault();
+    const body = `Name: ${values.name}\nEmail: ${values.email}\nRequest: ${values.request_type}\nConsent: ${values.consent || 'not applicable'}\n\n${values.message || ''}`;
+    window.location.href = `mailto:${siteConfig.email}?subject=${encodeURIComponent(subjects[purpose.value] || subjects.inquiry)}&body=${encodeURIComponent(body)}`;
+    form.querySelector('.form-status').textContent = 'Your email app should open. Press Send there to deliver your request.';
   });
 }
 

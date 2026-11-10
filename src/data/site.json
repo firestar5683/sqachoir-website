@@ -5,9 +5,39 @@
   "instagram": "https://www.instagram.com/friendsu_sqalumnichoir/",
   "director": "Eric D. Stone",
   "accompanist": "Dr. James Knight",
-  "rehearsals": { "season": "August–November", "day": "Monday", "time": "7–8:30 p.m.", "place": "C6 rehearsal hall", "campus": "Friends University", "city": "Wichita, Kansas" },
+  "rehearsals": {
+    "season": "August–November",
+    "day": "Monday",
+    "time": "7–8:30 p.m.",
+    "place": "C6 rehearsal hall",
+    "campus": "Friends University",
+    "city": "Wichita, Kansas"
+  },
   "concerts": [
-    { "year": "2026", "date": "November 7, 2026", "title": "Hallelujah, The Praise Continues", "guest": "Reginal S. Wright", "venue": "Eastminster Presbyterian Church", "description": "Our 2026 fall concert welcomed guest conductor Reginal S. Wright, with Eric D. Stone conducting and Dr. James Knight at the piano.", "poster": "assets/concert-2026.pdf" },
-    { "year": "2025", "date": "November 8, 2025", "title": "What a Savior, What a Friend", "guest": "Dr. Kevin Fenton", "venue": "Eastminster Presbyterian Church", "description": "Guest conductor Dr. Kevin Fenton joined the choir for an evening of music led alongside Eric D. Stone, with Dr. James Knight accompanying." }
-  ]
+    {
+      "year": "2026",
+      "date": "November 7, 2026",
+      "title": "Hallelujah, The Praise Continues",
+      "guest": "Reginal S. Wright",
+      "venue": "Eastminster Presbyterian Church",
+      "description": "Our 2026 fall concert welcomed guest conductor Reginal S. Wright, with Eric D. Stone conducting and Dr. James Knight at the piano.",
+      "poster": "assets/concert-2026.pdf"
+    },
+    {
+      "year": "2025",
+      "date": "November 8, 2025",
+      "title": "What a Savior, What a Friend",
+      "guest": "Dr. Kevin Fenton",
+      "venue": "Eastminster Presbyterian Church",
+      "description": "Guest conductor Dr. Kevin Fenton joined the choir for an evening of music led alongside Eric D. Stone, with Dr. James Knight accompanying."
+    }
+  ],
+  "upcomingConcert": {
+    "date": "2027-11-13",
+    "displayDate": "Saturday, November 13, 2027",
+    "title": "TRINITY",
+    "guest": "Marianne Forman",
+    "guestUrl": "https://marianneforman.com/",
+    "workUrl": "https://beckenhorstpress.com/trinity/"
+  }
 }
